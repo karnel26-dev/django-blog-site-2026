@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ post.title }}{% endblock %}
+
+{% block content %}
+<article class="post-detail">
+    <div class="post-meta">
+        <span>Автор: {{ post.author.username }}</span>
+        <span>{{ post.created_at|date:'d.m.Y H:i' }}</span>
+    </div>
+
+    <h1>{{ post.title }}</h1>
+
+    <div class="tags">
+        {% for tag in post.tags.all %}
+            <span class="tag">{{ tag.name }}</span>
+        {% endfor %}
+    </div>
+
+    <p class="post-text">{{ post.text|linebreaksbr }}</p>
+
+    <div class="images-grid">
+        {% if post.image1 %}
+            <img src="{{ post.image1.url }}" alt="Изображение 1 к посту">
+        {% endif %}
+        {% if post.image2 %}
+            <img src="{{ post.image2.url }}" alt="Изображение 2 к посту">
+        {% endif %}
+        {% if post.image3 %}
+            <img src="{{ post.image3.url }}" alt="Изображение 3 к посту">
+        {% endif %}
+    </div>
+
+    <div class="post-actions">
+        {% if user.is_authenticated %}
+            <form method="post" action="{% url 'blog:post_like' post.pk %}">
+                {% csrf_token %}
+                <button type="submit">
+                    {% if user in post.likes.all %}Убрать лайк{% else %}Поставить лайк{% endif %}
+                </button>
+            </form>
+        {% endif %}
+        <span>Лайков: {{ post.like_count }}</span>
+    </div>
+
+    <div class="post-actions">
+        {% if user == post.author %}
+            <a class="button" href="{% url 'blog:post_update' post.pk %}">Редактировать</a>
+        {% endif %}
+
+        {% if user == post.author or user.is_staff %}
+            <a class="button danger" href="{% url 'blog:post_delete' post.pk %}">Удалить</a>
+        {% endif %}
+    </div>
+</article>
+{% endblock %}
