@@ -1,5 +1,8 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
+  <component name="Black">
+    <option name="sdkName" value="Python 3.10 (django-blog-site-2026)" />
+  </component>
   <component name="GithubDefaultAccount">
     <option name="defaultAccountId" value="5671660a-bde0-4351-9e92-6e604240b9ce" />
   </component>
