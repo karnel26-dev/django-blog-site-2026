@@ -81,7 +81,7 @@ a:hover {
 
 .filters {
     display: grid;
-    grid-template-columns: repeat(5, minmax(140px, 1fr));
+    grid-template-columns: repeat(6, minmax(130px, 1fr));
     gap: 14px;
     align-items: end;
     padding: 16px;
@@ -168,6 +168,12 @@ button:hover,
 
 .post-card h2 {
     margin: 8px 0;
+}
+
+.category-label {
+    margin: 8px 0;
+    font-weight: 700;
+    color: #344054;
 }
 
 .post-meta,

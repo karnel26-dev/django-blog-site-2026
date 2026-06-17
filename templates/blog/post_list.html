@@ -4,10 +4,11 @@
 
 {% block content %}
 <section class="page-title">
-    <h1>Посты</h1>
-    <p>Читайте посты, ищите по тексту, фильтруйте по автору и тегам.</p>
+    <h1>{{ page_heading|default:'Посты' }}</h1>
+    <p>{{ page_description|default:'Читайте посты, ищите по тексту, фильтруйте по автору, категории и тегам.' }}</p>
 </section>
 
+{% if not hide_filters %}
 <form class="filters" method="get">
     <label>
         Поиск
@@ -21,6 +22,18 @@
             {% for author in authors %}
                 <option value="{{ author.id }}" {% if selected_author == author.id|stringformat:'s' %}selected{% endif %}>
                     {{ author.username }}
+                </option>
+            {% endfor %}
+        </select>
+    </label>
+
+    <label>
+        Категория
+        <select name="category">
+            <option value="">Все категории</option>
+            {% for category in categories %}
+                <option value="{{ category.id }}" {% if selected_category == category.id|stringformat:'s' %}selected{% endif %}>
+                    {{ category.name }}
                 </option>
             {% endfor %}
         </select>
@@ -52,16 +65,22 @@
     <button type="submit">Применить</button>
     <a class="button secondary" href="{% url 'blog:post_list' %}">Сбросить</a>
 </form>
+{% endif %}
 
 <section class="post-list">
     {% for post in posts %}
         <article class="post-card">
             <div class="post-meta">
-                <span>{{ post.author.username }}</span>
+                <a href="{% url 'blog:user_posts' post.author.id %}">{{ post.author.username }}</a>
                 <span>{{ post.created_at|date:'d.m.Y H:i' }}</span>
             </div>
 
             <h2><a href="{% url 'blog:post_detail' post.pk %}">{{ post.title }}</a></h2>
+            {% if post.category %}
+                <p class="category-label">Категория: {{ post.category.name }}</p>
+            {% else %}
+                <p class="category-label muted">Без категории</p>
+            {% endif %}
             <p>{{ post.text|truncatewords:35 }}</p>
 
             <div class="tags">

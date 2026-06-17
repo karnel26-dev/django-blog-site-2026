@@ -5,7 +5,7 @@ from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 
 from .forms import PostForm
-from .models import Post, Tag
+from .models import Category, Post, Tag
 
 
 def post_list(request):
@@ -14,14 +14,15 @@ def post_list(request):
 
     Здесь показаны сразу несколько типичных задач:
     - поиск по заголовку и тексту;
-    - фильтрация по автору и тегу;
+    - фильтрация по автору, категории и тегу;
     - сортировка по дате, заголовку и количеству лайков.
     """
 
-    posts = Post.objects.select_related('author').prefetch_related('tags', 'likes')
+    posts = Post.objects.select_related('author', 'category').prefetch_related('tags', 'likes')
 
     query = request.GET.get('q', '').strip()
     author_id = request.GET.get('author', '')
+    category_id = request.GET.get('category', '')
     tag_id = request.GET.get('tag', '')
     sort = request.GET.get('sort', '-created_at')
 
@@ -30,6 +31,9 @@ def post_list(request):
 
     if author_id:
         posts = posts.filter(author_id=author_id)
+
+    if category_id:
+        posts = posts.filter(category_id=category_id)
 
     if tag_id:
         posts = posts.filter(tags__id=tag_id)
@@ -51,10 +55,64 @@ def post_list(request):
         'posts': posts,
         'query': query,
         'authors': get_user_model().objects.all().order_by('username'),
+        'categories': Category.objects.all(),
         'tags': Tag.objects.all(),
         'selected_author': author_id,
+        'selected_category': category_id,
         'selected_tag': tag_id,
         'selected_sort': sort,
+        'page_heading': 'Посты',
+        'page_description': 'Читайте посты, ищите по тексту, фильтруйте по автору, категории и тегам.',
+    }
+    return render(request, 'blog/post_list.html', context)
+
+
+@login_required
+def my_posts(request):
+    """
+    Список постов текущего пользователя.
+
+    Используем отдельный view, чтобы студентам было видно, как получить
+    записи, связанные с request.user.
+    """
+
+    posts = (
+        Post.objects.select_related('author', 'category')
+        .prefetch_related('tags', 'likes')
+        .filter(author=request.user)
+        .annotate(likes_count=Count('likes'))
+        .order_by('-created_at')
+    )
+    context = {
+        'posts': posts,
+        'page_heading': 'Мои посты',
+        'page_description': 'Все посты, которые вы создали.',
+        'hide_filters': True,
+    }
+    return render(request, 'blog/post_list.html', context)
+
+
+def user_posts(request, user_id):
+    """
+    Просмотр постов любого пользователя.
+
+    user_id приходит из адреса страницы. Если пользователя нет, Django вернет
+    стандартную страницу 404.
+    """
+
+    author = get_object_or_404(get_user_model(), pk=user_id)
+    posts = (
+        Post.objects.select_related('author', 'category')
+        .prefetch_related('tags', 'likes')
+        .filter(author=author)
+        .annotate(likes_count=Count('likes'))
+        .order_by('-created_at')
+    )
+    context = {
+        'posts': posts,
+        'page_heading': f'Посты пользователя {author.username}',
+        'page_description': 'Публичный список постов выбранного автора.',
+        'hide_filters': True,
     }
     return render(request, 'blog/post_list.html', context)
 
@@ -63,7 +121,7 @@ def post_detail(request, pk):
     """Страница одного поста."""
 
     post = get_object_or_404(
-        Post.objects.select_related('author').prefetch_related('tags', 'likes'),
+        Post.objects.select_related('author', 'category').prefetch_related('tags', 'likes'),
         pk=pk,
     )
     return render(request, 'blog/post_detail.html', {'post': post})

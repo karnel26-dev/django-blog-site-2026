@@ -13,7 +13,7 @@ class PostForm(forms.ModelForm):
 
     class Meta:
         model = Post
-        fields = ('title', 'text', 'tags', 'image1', 'image2', 'image3')
+        fields = ('title', 'text', 'category', 'tags', 'image1', 'image2', 'image3')
         widgets = {
             'text': forms.Textarea(attrs={'rows': 8}),
             'tags': forms.CheckboxSelectMultiple(),

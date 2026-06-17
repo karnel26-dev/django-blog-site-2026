@@ -24,6 +24,26 @@ class Tag(models.Model):
         return self.name
 
 
+class Category(models.Model):
+    """
+    Категория поста.
+
+    В отличие от тегов, у поста будет только одна категория. Это хороший пример
+    связи ForeignKey: много постов могут относиться к одной категории.
+    """
+
+    name = models.CharField('название', max_length=80, unique=True)
+    slug = models.SlugField('slug', max_length=90, unique=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'категория'
+        verbose_name_plural = 'категории'
+
+    def __str__(self):
+        return self.name
+
+
 class Post(models.Model):
     """
     Пост блога.
@@ -40,6 +60,14 @@ class Post(models.Model):
         on_delete=models.CASCADE,
         related_name='posts',
         verbose_name='автор',
+    )
+    category = models.ForeignKey(
+        Category,
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        related_name='posts',
+        verbose_name='категория',
     )
     tags = models.ManyToManyField(
         Tag,
